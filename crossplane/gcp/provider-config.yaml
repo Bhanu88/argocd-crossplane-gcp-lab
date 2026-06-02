@@ -3,7 +3,7 @@ kind: ProviderConfig
 metadata:
   name: gcp-provider
 spec:
-  projectID: YOUR_GCP_PROJECT_ID
+  projectID: bhanu-gke-demo-2026
   credentials:
     source: Secret
     secretRef:
