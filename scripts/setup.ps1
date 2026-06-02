@@ -44,13 +44,21 @@ Write-Step "Installing ArgoCD"
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
+# Some installs may miss this CRD due to annotation-size apply issues.
+$appSetCrd = kubectl get crd applicationsets.argoproj.io --ignore-not-found
+if (-not $appSetCrd) {
+    Write-Host "applicationsets.argoproj.io CRD missing, creating it explicitly..." -ForegroundColor Yellow
+    kubectl create -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/applicationset-crd.yaml
+    kubectl rollout restart deployment/argocd-applicationset-controller -n argocd
+}
+
 Write-Host "Waiting for ArgoCD pods to be ready (this takes ~2 minutes)..." -ForegroundColor Yellow
 kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=300s
 
 # ─── 3. Patch ArgoCD server to NodePort so we can reach it on localhost:30080 ──
 Write-Step "Exposing ArgoCD server on NodePort 30080"
 
-kubectl patch svc argocd-server -n argocd -p '{\"spec\":{\"type\":\"NodePort\",\"ports\":[{\"port\":443,\"targetPort\":8080,\"nodePort\":30080}]}}'
+kubectl patch svc argocd-server -n argocd -p '{\"spec\":{\"type\":\"NodePort\",\"ports\":[{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8080,\"nodePort\":30080},{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080,\"nodePort\":30082}]}}'
 
 # ─── 4. Fetch the initial admin password ───────────────────────────────────────
 Write-Step "Retrieving initial ArgoCD admin password"
@@ -70,6 +78,25 @@ Write-Host "╚═════════════════════�
 Write-Step "Deploying guestbook Application via ArgoCD"
 
 kubectl apply -f argocd/application.yaml
+
+# ─── 6. Deploy Crossplane applications (optional but recommended for this lab) ─
+Write-Step "Deploying Crossplane apps via ArgoCD"
+
+kubectl apply -f argocd/crossplane-install-app.yaml
+kubectl apply -f argocd/crossplane-gcp-free-resource-app.yaml
+
+# If a local key exists, bootstrap gcp-creds so Crossplane can reconcile.
+$credsFile = ".\your-service-account.json"
+if (Test-Path $credsFile) {
+    Write-Host "Found your-service-account.json, creating/updating gcp-creds secret..." -ForegroundColor Yellow
+    kubectl create secret generic gcp-creds -n crossplane-system --from-file=creds.json=$credsFile --dry-run=client -o yaml | kubectl apply -f -
+    kubectl annotate application crossplane-gcp-free-resource -n argocd argocd.argoproj.io/refresh=hard --overwrite
+} else {
+    Write-Host "No your-service-account.json found. Crossplane GCP app may stay Degraded until gcp-creds is created." -ForegroundColor Yellow
+}
+
+Write-Host "Current ArgoCD applications:" -ForegroundColor Cyan
+kubectl get applications -n argocd
 
 Write-Host ""
 Write-Host "Application deployed. ArgoCD will sync the guestbook app automatically." -ForegroundColor Green
