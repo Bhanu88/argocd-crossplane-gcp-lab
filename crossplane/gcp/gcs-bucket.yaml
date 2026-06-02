@@ -3,8 +3,7 @@ kind: Bucket
 metadata:
   name: free-tier-demo-bucket
   annotations:
-    # Replace with a globally unique bucket name before syncing.
-    crossplane.io/external-name: REPLACE_WITH_GLOBALLY_UNIQUE_BUCKET_NAME
+    crossplane.io/external-name: bhanu88-crossplane-free-20260602
 spec:
   deletionPolicy: Delete
   providerConfigRef:

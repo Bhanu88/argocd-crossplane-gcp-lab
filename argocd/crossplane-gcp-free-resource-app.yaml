@@ -6,8 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    # Replace with your Git repository containing this folder.
-    repoURL: https://github.com/YOUR_GITHUB_USER/YOUR_REPO.git
+    repoURL: https://github.com/Bhanu88/argocd-crossplane-gcp-lab.git
     targetRevision: HEAD
     path: crossplane/gcp
   destination:
