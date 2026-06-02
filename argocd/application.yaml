@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: guestbook
+  namespace: argocd
+  # Finalizer: deleting the Application also removes the deployed resources
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # The ArgoCD project this application belongs to (default allows everything)
+  project: default
+
+  # Source: where to pull Kubernetes manifests from
+  source:
+    # ---------------------------------------------------------------
+    # OPTION A – use the official ArgoCD example repo (works out of box)
+    # ---------------------------------------------------------------
+    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    targetRevision: HEAD
+    path: guestbook
+
+    # ---------------------------------------------------------------
+    # OPTION B – point to THIS repo once you push it to GitHub
+    # Uncomment and replace the values below, then remove OPTION A
+    # ---------------------------------------------------------------
+    # repoURL: https://github.com/<your-username>/argocd-demo.git
+    # targetRevision: HEAD
+    # path: sample-app
+
+  # Destination: the cluster + namespace ArgoCD deploys into
+  destination:
+    server: https://kubernetes.default.svc   # "in-cluster" reference
+    namespace: guestbook
+
+  # Sync policy: controls how/when ArgoCD reconciles
+  syncPolicy:
+    automated:
+      prune: true      # delete resources removed from Git
+      selfHeal: true   # revert manual cluster changes
+    syncOptions:
+      - CreateNamespace=true   # create the namespace if it doesn't exist

@@ -1,0 +1,14 @@
+apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+name: argocd-demo
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # Expose ArgoCD server on localhost
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP
+      # Expose sample app
+      - containerPort: 30081
+        hostPort: 30081
+        protocol: TCP

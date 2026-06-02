@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: demo-project
+  namespace: argocd
+spec:
+  description: Demo project for learning ArgoCD
+
+  # Allowed source repositories
+  sourceRepos:
+    - "https://github.com/argoproj/argocd-example-apps.git"
+    - "*"   # allow any repo — restrict in production!
+
+  # Allowed destination clusters and namespaces
+  destinations:
+    - namespace: guestbook
+      server: https://kubernetes.default.svc
+    - namespace: default
+      server: https://kubernetes.default.svc
+
+  # Permitted Kubernetes resource types (empty = all allowed)
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  namespaceResourceWhitelist:
+    - group: "apps"
+      kind: Deployment
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ConfigMap

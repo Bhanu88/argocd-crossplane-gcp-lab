@@ -1,0 +1,16 @@
+apiVersion: storage.gcp.upbound.io/v1beta1
+kind: Bucket
+metadata:
+  name: free-tier-demo-bucket
+  annotations:
+    # Replace with a globally unique bucket name before syncing.
+    crossplane.io/external-name: REPLACE_WITH_GLOBALLY_UNIQUE_BUCKET_NAME
+spec:
+  deletionPolicy: Delete
+  providerConfigRef:
+    name: gcp-provider
+  forProvider:
+    location: US
+    storageClass: STANDARD
+    uniformBucketLevelAccess: true
+    forceDestroy: false
