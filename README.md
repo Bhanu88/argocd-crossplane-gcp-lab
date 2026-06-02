@@ -4,6 +4,37 @@ A hands-on project for learning [ArgoCD](https://argo-cd.readthedocs.io/) using 
 
 ---
 
+## Known Good Commands
+
+Use these commands exactly as-is for a quick, working path.
+
+```powershell
+# 1) Create cluster + install ArgoCD + deploy guestbook
+.\scripts\setup.ps1
+
+# 2) Open ArgoCD UI
+# URL: https://localhost:30080
+
+# 3) Install Crossplane app + GCP resource app
+kubectl apply -f argocd/crossplane-install-app.yaml
+kubectl apply -f argocd/crossplane-gcp-free-resource-app.yaml
+
+# 4) Create/update GCP credentials secret
+kubectl create secret generic gcp-creds -n crossplane-system --from-file=creds.json=.\your-service-account.json --dry-run=client -o yaml | kubectl apply -f -
+
+# 5) Force ArgoCD refresh for Crossplane app
+kubectl annotate application crossplane-gcp-free-resource -n argocd argocd.argoproj.io/refresh=hard --overwrite
+
+# 6) Check health quickly
+kubectl get applications -n argocd
+kubectl get pods -n argocd
+kubectl get pods -n crossplane-system
+kubectl get providers.pkg.crossplane.io
+kubectl get bucket.storage.gcp.upbound.io free-tier-demo-bucket -o yaml
+```
+
+---
+
 ## Project Structure
 
 ```
