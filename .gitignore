@@ -1,0 +1,4 @@
+# Local credentials
+your-service-account.json
+*-service-account.json
+gcp-creds.json
